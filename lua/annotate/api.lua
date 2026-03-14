@@ -1,6 +1,7 @@
 -- Public API for annotate.nvim
 
 local core = require("annotate.core")
+local input = require("annotate.input")
 local persistence = require("annotate.persistence")
 local render = require("annotate.render")
 
@@ -9,20 +10,12 @@ local M = {}
 -- Forward declaration for refresh function
 local refresh_trouble_if_open
 
----Prompt for annotation input
+---Prompt for annotation input using a floating window
+---@param end_line number 1-indexed line to anchor the input window below
 ---@param callback fun(text: string|nil)
 ---@param initial_text string|nil
-local function prompt_annotation_input(callback, initial_text)
-  vim.ui.input({
-    prompt = "Annotation: ",
-    default = initial_text or "",
-  }, function(input)
-    if input and vim.trim(input) ~= "" then
-      callback(vim.trim(input))
-    else
-      callback(nil)
-    end
-  end)
+local function prompt_annotation_input(end_line, callback, initial_text)
+  input.open(end_line, callback, initial_text)
 end
 
 ---Add a new annotation
@@ -35,7 +28,7 @@ function M.add(start_line, end_line)
   local file = vim.api.nvim_buf_get_name(bufnr)
   local original_content = core.get_buffer_lines(bufnr, start_line, end_line)
 
-  prompt_annotation_input(function(comment)
+  prompt_annotation_input(end_line, function(comment)
     if not comment then
       return
     end
@@ -116,7 +109,7 @@ function M.edit_under_cursor()
     return
   end
 
-  prompt_annotation_input(function(comment)
+  prompt_annotation_input(annotation.end_line, function(comment)
     if not comment then
       return
     end
@@ -481,7 +474,7 @@ function M.edit_by_id(id)
     vim.api.nvim_win_set_cursor(0, { annotation.start_line, 0 })
   end
 
-  prompt_annotation_input(function(comment)
+  prompt_annotation_input(annotation.end_line, function(comment)
     if not comment then
       return
     end

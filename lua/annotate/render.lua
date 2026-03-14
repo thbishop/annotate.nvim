@@ -64,12 +64,21 @@ function M.render_virtual_text(annotation)
 
   local prefix = "  -> "
   local continuation_prefix = "     "
-  local virt_lines
+  local virt_lines = {}
 
-  if wrap_at > 0 and #annotation.comment + #prefix > wrap_at then
-    virt_lines = wrap_text(annotation.comment, wrap_at, prefix, continuation_prefix, hl)
-  else
-    virt_lines = { { { prefix .. annotation.comment, hl } } }
+  local paragraphs = vim.split(annotation.comment, "\n", { plain = true })
+  for i, paragraph in ipairs(paragraphs) do
+    local current_prefix = i == 1 and prefix or continuation_prefix
+    if #paragraph == 0 then
+      table.insert(virt_lines, { { current_prefix, hl } })
+    elseif wrap_at > 0 and #paragraph + #current_prefix > wrap_at then
+      local wrapped = wrap_text(paragraph, wrap_at, current_prefix, continuation_prefix, hl)
+      for _, line in ipairs(wrapped) do
+        table.insert(virt_lines, line)
+      end
+    else
+      table.insert(virt_lines, { { current_prefix .. paragraph, hl } })
+    end
   end
 
   annotation.extmark_id = vim.api.nvim_buf_set_extmark(annotation.bufnr, core.namespace, annotation.end_line - 1, 0, {
