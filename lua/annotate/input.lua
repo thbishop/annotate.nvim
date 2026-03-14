@@ -2,11 +2,12 @@
 
 local M = {}
 
----Open a floating window input anchored below end_line
+---Open a floating window input anchored below end_line, or above start_line if not enough space
+---@param start_line number 1-indexed buffer line for the start of the selection
 ---@param end_line number 1-indexed buffer line to anchor the window below
 ---@param callback fun(text: string|nil)
 ---@param initial_text string|nil
-function M.open(end_line, callback, initial_text)
+function M.open(start_line, end_line, callback, initial_text)
   local source_win = vim.api.nvim_get_current_win()
   local buf = vim.api.nvim_create_buf(false, true)
 
@@ -20,29 +21,57 @@ function M.open(end_line, callback, initial_text)
   end
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, initial_lines)
 
-  -- Calculate position: anchor directly below end_line
+  -- Calculate position: below end_line, or above start_line if not enough space
   local win_width = vim.api.nvim_win_get_width(source_win)
   local win_height = vim.api.nvim_win_get_height(source_win)
   local win_pos = vim.api.nvim_win_get_position(source_win)
 
-  local screen_row = vim.fn.screenpos(source_win, end_line, 1).row
-  local float_row
-  if screen_row == 0 then
-    -- Line is not visible; fall back to near bottom of window
-    float_row = win_height - 6
+  local screen_row_end = vim.fn.screenpos(source_win, end_line, 1).row
+  local float_row_below
+  if screen_row_end == 0 then
+    float_row_below = win_height - 6
   else
-    -- screen_row is 1-indexed; win_pos[1] is 0-indexed screen row of window top.
-    -- float_row = distance from window top to the row just below end_line (0-indexed).
-    float_row = screen_row - win_pos[1]
+    float_row_below = screen_row_end - win_pos[1]
   end
 
   local float_width = win_width - 4
-  local float_height = 4
+  local desired_height = 4
 
-  -- Clamp height to available space below (accounting for border)
-  local space_below = win_height - float_row - 2
-  if space_below < float_height then
-    float_height = math.max(1, space_below)
+  local space_below = win_height - float_row_below - 2  -- rows available below end_line
+
+  local float_row, float_height
+  if space_below >= desired_height then
+    -- Enough room below: use default placement
+    float_row = float_row_below
+    float_height = desired_height
+  else
+    -- Not enough room below: try placing above start_line
+    local screen_row_start = vim.fn.screenpos(source_win, start_line, 1).row
+    local float_row_above_bottom  -- window-relative row of the start of the selection
+    if screen_row_start == 0 then
+      float_row_above_bottom = 0
+    else
+      float_row_above_bottom = screen_row_start - win_pos[1]
+    end
+
+    -- The float window placed "above" should have its bottom border just above start_line.
+    -- With a rounded border, the window occupies rows [row .. row + height + 1] (border lines).
+    -- We want: row + height + 2 <= float_row_above_bottom
+    -- => row = float_row_above_bottom - desired_height - 2
+    local space_above = float_row_above_bottom - 2  -- rows available above start_line
+    if space_above >= desired_height then
+      float_height = desired_height
+      float_row = float_row_above_bottom - desired_height - 2
+    else
+      -- Use whichever side has more space; fall back to below with clamped height
+      if space_above > space_below then
+        float_height = math.max(1, space_above)
+        float_row = math.max(0, float_row_above_bottom - float_height - 2)
+      else
+        float_height = math.max(1, space_below)
+        float_row = float_row_below
+      end
+    end
   end
 
   local float_win = vim.api.nvim_open_win(buf, true, {
