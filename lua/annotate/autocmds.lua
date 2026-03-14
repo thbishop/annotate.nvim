@@ -7,14 +7,46 @@ local render = require("annotate.render")
 
 local M = {}
 
+-- Pending debounce timers keyed by bufnr
+local pending_timers = {}
+
+---Cancel and close a pending render timer for a buffer, if any
+---@param bufnr number
+local function cancel_pending_timer(bufnr)
+  local timer = pending_timers[bufnr]
+  if timer and not timer:is_closing() then
+    timer:stop()
+    timer:close()
+  end
+  pending_timers[bufnr] = nil
+end
+
 function M.setup()
   local group = vim.api.nvim_create_augroup("Annotate", { clear = true })
 
-  -- Handle text changes - update drift detection
+  -- Handle text changes - debounced to avoid re-rendering on every keystroke
   vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     group = group,
     callback = function(args)
-      render.render_buffer_annotations(args.buf)
+      local bufnr = args.buf
+      cancel_pending_timer(bufnr)
+
+      local uv = vim.uv or vim.loop
+      local timer = uv.new_timer()
+      pending_timers[bufnr] = timer
+      timer:start(
+        150,
+        0,
+        vim.schedule_wrap(function()
+          pending_timers[bufnr] = nil
+          if not timer:is_closing() then
+            timer:close()
+          end
+          if vim.api.nvim_buf_is_valid(bufnr) then
+            render.render_buffer_annotations(bufnr)
+          end
+        end)
+      )
     end,
   })
 
@@ -53,10 +85,11 @@ function M.setup()
     end,
   })
 
-  -- Handle buffer delete/wipe - clear rendering references
+  -- Handle buffer delete/wipe - cancel pending timers and clear rendering references
   vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
     group = group,
     callback = function(args)
+      cancel_pending_timer(args.buf)
       render.on_buffer_delete(args.buf)
     end,
   })
