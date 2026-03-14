@@ -106,6 +106,44 @@ local function run_tests()
     assert(#all == 0, "Should have no annotations initially")
   end)
 
+  -- Test: default virtual_text prefix is "> "
+  test("virtual_text.prefix defaults to '> '", function()
+    local config = require("annotate.config")
+    config.setup({})
+    local cfg = config.get()
+    assert(cfg.virtual_text ~= nil, "virtual_text config should exist")
+    assert(cfg.virtual_text.prefix == "> ", "default prefix should be '> ', got: " .. tostring(cfg.virtual_text.prefix))
+  end)
+
+  -- Test: virtual_text prefix is configurable
+  test("virtual_text.prefix can be customized", function()
+    local config = require("annotate.config")
+    config.setup({ virtual_text = { prefix = "// " } })
+    local cfg = config.get()
+    assert(cfg.virtual_text.prefix == "// ", "prefix should be '// ', got: " .. tostring(cfg.virtual_text.prefix))
+    -- Reset to defaults
+    config.setup({})
+  end)
+
+  -- Test: virtual_text prefix is a string
+  test("virtual_text.prefix is a string", function()
+    local config = require("annotate.config")
+    config.setup({})
+    local cfg = config.get()
+    assert(type(cfg.virtual_text.prefix) == "string", "prefix should be a string")
+  end)
+
+  -- Test: wrap_at config preserved alongside prefix
+  test("virtual_text wrap_at preserved when prefix configured", function()
+    local config = require("annotate.config")
+    config.setup({ virtual_text = { prefix = "* " } })
+    local cfg = config.get()
+    assert(cfg.virtual_text.wrap_at == 80, "wrap_at should still default to 80")
+    assert(cfg.virtual_text.prefix == "* ", "prefix should be '* '")
+    -- Reset to defaults
+    config.setup({})
+  end)
+
   print("\n=== Results: " .. passed .. " passed, " .. failed .. " failed ===\n")
 
   if failed > 0 then

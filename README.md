@@ -101,6 +101,7 @@ https://github.com/user-attachments/assets/d6a69abc-c822-4e5d-8935-6de3bae867d7
   },
   virtual_text = {
     wrap_at = 80,                 -- Wrap long comments (0 to disable)
+    prefix = "> ",                -- Prefix prepended to each virtual text line
   },
   sign = {
     text = "",                   -- Sign column text

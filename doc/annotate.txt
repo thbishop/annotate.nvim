@@ -88,6 +88,7 @@ Call `setup()` with a table to override defaults:
       },
       virtual_text = {
         wrap_at = 80,
+        prefix = "> ",
       },
       sign = {
         text = "",
@@ -107,6 +108,11 @@ Call `setup()` with a table to override defaults:
       },
     })
 <
+
+The `virtual_text.prefix` option controls the string prepended to each line of
+virtual text. It defaults to `"> "` (markdown blockquote style). Set it to any
+string to change the appearance, e.g. `"// "` for a comment style or `"│ "`
+for a box-drawing style.
 
 Note: Keymaps are NOT set by default. Call `set_keymaps()` after setup:
 >lua
