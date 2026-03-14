@@ -11,11 +11,12 @@ local M = {}
 local refresh_trouble_if_open
 
 ---Prompt for annotation input using a floating window
+---@param start_line number 1-indexed start of the selection
 ---@param end_line number 1-indexed line to anchor the input window below
 ---@param callback fun(text: string|nil)
 ---@param initial_text string|nil
-local function prompt_annotation_input(end_line, callback, initial_text)
-  input.open(end_line, callback, initial_text)
+local function prompt_annotation_input(start_line, end_line, callback, initial_text)
+  input.open(start_line, end_line, callback, initial_text)
 end
 
 ---Add a new annotation
@@ -28,7 +29,7 @@ function M.add(start_line, end_line)
   local file = vim.api.nvim_buf_get_name(bufnr)
   local original_content = core.get_buffer_lines(bufnr, start_line, end_line)
 
-  prompt_annotation_input(end_line, function(comment)
+  prompt_annotation_input(start_line, end_line, function(comment)
     if not comment then
       return
     end
@@ -109,7 +110,7 @@ function M.edit_under_cursor()
     return
   end
 
-  prompt_annotation_input(annotation.end_line, function(comment)
+  prompt_annotation_input(annotation.start_line, annotation.end_line, function(comment)
     if not comment then
       return
     end
@@ -474,7 +475,7 @@ function M.edit_by_id(id)
     vim.api.nvim_win_set_cursor(0, { annotation.start_line, 0 })
   end
 
-  prompt_annotation_input(annotation.end_line, function(comment)
+  prompt_annotation_input(annotation.start_line, annotation.end_line, function(comment)
     if not comment then
       return
     end
