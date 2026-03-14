@@ -52,7 +52,7 @@ function M.open(start_line, end_line, callback, initial_text)
     if screen_row_start == 0 then
       float_row_above_bottom = 0
     else
-      float_row_above_bottom = screen_row_start - win_pos[1]
+      float_row_above_bottom = screen_row_start - win_pos[1] - 1
     end
 
     -- The float window placed "above" should have its bottom border just above start_line.
