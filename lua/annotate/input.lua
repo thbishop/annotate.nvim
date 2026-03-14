@@ -122,6 +122,7 @@ function M.open(start_line, end_line, callback, initial_text)
       if vim.api.nvim_win_is_valid(source_win) then
         vim.api.nvim_set_current_win(source_win)
       end
+      vim.cmd("stopinsert")
       callback(text)
     end)
   end
