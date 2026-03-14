@@ -38,7 +38,7 @@ function M.open(start_line, end_line, callback, initial_text)
   local float_width = math.min(win_width - 4, max_width)
   local desired_height = 4
 
-  local space_below = win_height - float_row_below - 2  -- rows available below end_line
+  local space_below = win_height - float_row_below - 2 -- rows available below end_line
 
   local float_row, float_height
   if space_below >= desired_height then
@@ -48,7 +48,7 @@ function M.open(start_line, end_line, callback, initial_text)
   else
     -- Not enough room below: try placing above start_line
     local screen_row_start = vim.fn.screenpos(source_win, start_line, 1).row
-    local float_row_above_bottom  -- window-relative row of the start of the selection
+    local float_row_above_bottom -- window-relative row of the start of the selection
     if screen_row_start == 0 then
       float_row_above_bottom = 0
     else
@@ -59,7 +59,7 @@ function M.open(start_line, end_line, callback, initial_text)
     -- With a rounded border, the window occupies rows [row .. row + height + 1] (border lines).
     -- We want: row + height + 2 <= float_row_above_bottom
     -- => row = float_row_above_bottom - desired_height - 2
-    local space_above = float_row_above_bottom - 2  -- rows available above start_line
+    local space_above = float_row_above_bottom - 2 -- rows available above start_line
     if space_above >= desired_height then
       float_height = desired_height
       float_row = float_row_above_bottom - desired_height - 2
