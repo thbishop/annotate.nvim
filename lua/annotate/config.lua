@@ -25,6 +25,7 @@
 
 ---@class annotate.Config.VirtualText
 ---@field wrap_at number Wrap long comments at this column (0 to disable)
+---@field prefix string Prefix string prepended to each line of virtual text
 
 ---@class annotate.Config.Sign
 ---@field text string Sign text
@@ -64,6 +65,7 @@ local defaults = {
   },
   virtual_text = {
     wrap_at = 80,
+    prefix = "> ",
   },
   sign = {
     text = "",

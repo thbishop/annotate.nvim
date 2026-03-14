@@ -9,24 +9,21 @@ local M = {}
 ---@param text string
 ---@param wrap_at number
 ---@param prefix string
----@param continuation_prefix string
 ---@param hl string
 ---@return string[][]
-local function wrap_text(text, wrap_at, prefix, continuation_prefix, hl)
+local function wrap_text(text, wrap_at, prefix, hl)
   local lines = {}
   local remaining = text
-  local first_line = true
 
   while #remaining > 0 do
-    local current_prefix = first_line and prefix or continuation_prefix
-    local available_width = wrap_at - #current_prefix
+    local available_width = wrap_at - #prefix
 
     if available_width <= 0 then
       available_width = 40
     end
 
     if #remaining <= available_width then
-      table.insert(lines, { { current_prefix .. remaining, hl } })
+      table.insert(lines, { { prefix .. remaining, hl } })
       break
     end
 
@@ -39,8 +36,7 @@ local function wrap_text(text, wrap_at, prefix, continuation_prefix, hl)
     local line_text = remaining:sub(1, break_at)
     remaining = remaining:sub(break_at + 1):gsub("^%s+", "")
 
-    table.insert(lines, { { current_prefix .. line_text, hl } })
-    first_line = false
+    table.insert(lines, { { prefix .. line_text, hl } })
   end
 
   return lines
@@ -57,22 +53,20 @@ function M.render_virtual_text(annotation)
   local hl = annotation.drifted and cfg.highlights.virtual_text_drifted or cfg.highlights.virtual_text
   local wrap_at = cfg.virtual_text.wrap_at or 80
 
-  local prefix = "  -> "
-  local continuation_prefix = "     "
+  local prefix = cfg.virtual_text.prefix or "> "
   local virt_lines = {}
 
   local paragraphs = vim.split(annotation.comment, "\n", { plain = true })
-  for i, paragraph in ipairs(paragraphs) do
-    local current_prefix = i == 1 and prefix or continuation_prefix
+  for _, paragraph in ipairs(paragraphs) do
     if #paragraph == 0 then
-      table.insert(virt_lines, { { current_prefix, hl } })
-    elseif wrap_at > 0 and #paragraph + #current_prefix > wrap_at then
-      local wrapped = wrap_text(paragraph, wrap_at, current_prefix, continuation_prefix, hl)
+      table.insert(virt_lines, { { prefix, hl } })
+    elseif wrap_at > 0 and #paragraph + #prefix > wrap_at then
+      local wrapped = wrap_text(paragraph, wrap_at, prefix, hl)
       for _, line in ipairs(wrapped) do
         table.insert(virt_lines, line)
       end
     else
-      table.insert(virt_lines, { { current_prefix .. paragraph, hl } })
+      table.insert(virt_lines, { { prefix .. paragraph, hl } })
     end
   end
 
