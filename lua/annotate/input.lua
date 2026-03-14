@@ -34,7 +34,8 @@ function M.open(start_line, end_line, callback, initial_text)
     float_row_below = screen_row_end - win_pos[1]
   end
 
-  local float_width = win_width - 4
+  local max_width = 80
+  local float_width = math.min(win_width - 4, max_width)
   local desired_height = 4
 
   local space_below = win_height - float_row_below - 2  -- rows available below end_line
