@@ -68,7 +68,7 @@ local defaults = {
     prefix = "> ",
   },
   sign = {
-    text = "",
+    text = "|",
     hl = "DiagnosticSignInfo",
   },
   highlights = {

@@ -144,6 +144,24 @@ local function run_tests()
     config.setup({})
   end)
 
+  -- Test: default sign text is "|"
+  test("sign.text defaults to '|'", function()
+    local config = require("annotate.config")
+    config.setup({})
+    local cfg = config.get()
+    assert(cfg.sign.text == "|", "default sign text should be '|', got: " .. tostring(cfg.sign.text))
+  end)
+
+  -- Test: sign text is configurable
+  test("sign.text can be customized", function()
+    local config = require("annotate.config")
+    config.setup({ sign = { text = ">" } })
+    local cfg = config.get()
+    assert(cfg.sign.text == ">", "sign text should be '>', got: " .. tostring(cfg.sign.text))
+    -- Reset to defaults
+    config.setup({})
+  end)
+
   print("\n=== Results: " .. passed .. " passed, " .. failed .. " failed ===\n")
 
   if failed > 0 then
