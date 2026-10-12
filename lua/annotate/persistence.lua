@@ -34,7 +34,6 @@ function M.serialize_annotations()
       original_content = annotation.original_content,
       comment = annotation.comment,
       created_at = annotation.created_at,
-      drifted = annotation.drifted,
     })
   end
 
@@ -68,7 +67,6 @@ function M.deserialize_annotations(data)
         extmark_id = nil,
         sign_ids = {},
         line_hl_ids = {},
-        drifted = ann_data.drifted or false,
       }
       core.annotations[ann_data.id] = annotation
 
@@ -174,11 +172,7 @@ function M.generate_markdown_content()
 
     for _, annotation in ipairs(file_annotations) do
       count = count + 1
-      local drift_marker = annotation.drifted and " ⚠️ DRIFTED" or ""
-      table.insert(
-        lines,
-        string.format("## File: %sL%d:L%d%s", file, annotation.start_line, annotation.end_line, drift_marker)
-      )
+      table.insert(lines, string.format("## File: %sL%d:L%d", file, annotation.start_line, annotation.end_line))
       table.insert(lines, "")
 
       local ext = file:match("%.([^%.]+)$") or ""

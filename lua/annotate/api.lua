@@ -47,7 +47,6 @@ function M.add(start_line, end_line)
       extmark_id = nil,
       sign_ids = {},
       line_hl_ids = {},
-      drifted = false,
     }
 
     core.annotations[core.next_id] = annotation
@@ -365,14 +364,11 @@ function M.import_from_file()
             extmark_id = nil,
             sign_ids = {},
             line_hl_ids = {},
-            drifted = false,
           }
 
           core.annotations[core.next_id] = annotation
           core.next_id = core.next_id + 1
           imported = imported + 1
-
-          annotation.drifted = core.check_drift(annotation)
 
           if vim.api.nvim_buf_is_valid(bufnr) then
             render.render_annotation(annotation)
@@ -499,15 +495,14 @@ local function update_quickfix_list()
   for _, annotation in pairs(core.annotations) do
     core.update_position_from_extmark(annotation)
     local line_range = core.format_line_range(annotation.start_line, annotation.end_line)
-    local prefix = annotation.drifted and "⚠ " or "● "
     table.insert(items, {
       bufnr = annotation.bufnr,
       filename = annotation.file,
       lnum = annotation.start_line,
       end_lnum = annotation.end_line,
       col = 1,
-      text = prefix .. "[" .. line_range .. "] " .. annotation.comment,
-      type = annotation.drifted and "W" or "I",
+      text = "● [" .. line_range .. "] " .. annotation.comment,
+      type = "I",
       user_data = { annotation_id = annotation.id },
     })
   end
@@ -596,14 +591,12 @@ function M.telescope_picker(opts)
 
   local make_display = function(entry)
     local ann = entry.annotation
-    local icon = ann.drifted and "⚠" or "●"
-    local icon_hl = ann.drifted and "DiagnosticWarn" or "DiagnosticInfo"
     local filename = vim.fn.fnamemodify(ann.file, ":t")
     local line_range = ann.start_line == ann.end_line and string.format("L%d", ann.start_line)
       or string.format("L%d-%d", ann.start_line, ann.end_line)
 
     return displayer({
-      { icon, icon_hl },
+      { "●", "DiagnosticInfo" },
       { filename, "TelescopeResultsIdentifier" },
       { line_range, "TelescopeResultsNumber" },
       { ann.comment, "TelescopeResultsComment" },
@@ -629,7 +622,7 @@ function M.telescope_picker(opts)
 
       local lines = {
         "# " .. vim.fn.fnamemodify(ann.file, ":~:."),
-        string.format("Lines %d-%d%s", ann.start_line, ann.end_line, ann.drifted and " (DRIFTED)" or ""),
+        string.format("Lines %d-%d", ann.start_line, ann.end_line),
         "",
         "## Comment:",
         ann.comment,
@@ -708,28 +701,6 @@ function M.telescope_picker(opts)
             vim.api.nvim_win_set_cursor(0, { ann.start_line, 0 })
             M.edit_by_id(ann.id)
           end
-        end)
-
-        map("n", "D", function()
-          local current_picker = action_state.get_current_picker(prompt_bufnr)
-          local new_list = {}
-          for _, ann in pairs(core.annotations) do
-            if ann.drifted then
-              core.update_position_from_extmark(ann)
-              table.insert(new_list, ann)
-            end
-          end
-          if #new_list == 0 then
-            vim.notify("No drifted annotations", vim.log.levels.INFO)
-            return
-          end
-          current_picker:refresh(
-            finders.new_table({
-              results = new_list,
-              entry_maker = entry_maker,
-            }),
-            { reset_prompt = true }
-          )
         end)
 
         return true
