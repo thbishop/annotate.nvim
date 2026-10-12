@@ -42,11 +42,6 @@ function M.init()
     texthl = cfg.highlights.sign,
     numhl = cfg.highlights.sign,
   })
-  vim.fn.sign_define("AnnotateSignDrifted", {
-    text = cfg.sign.text,
-    texthl = cfg.highlights.sign_drifted,
-    numhl = cfg.highlights.sign_drifted,
-  })
 end
 
 ---Get buffer lines
@@ -56,28 +51,6 @@ end
 ---@return string[]
 function M.get_buffer_lines(bufnr, start_line, end_line)
   return vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
-end
-
----Check if annotation content has drifted
----@param annotation Annotation
----@return boolean
-function M.check_drift(annotation)
-  if not vim.api.nvim_buf_is_valid(annotation.bufnr) then
-    return annotation.drifted
-  end
-
-  local current = M.get_buffer_lines(annotation.bufnr, annotation.start_line, annotation.end_line)
-  if #current ~= #annotation.original_content then
-    return true
-  end
-
-  for i, line in ipairs(current) do
-    if line ~= annotation.original_content[i] then
-      return true
-    end
-  end
-
-  return false
 end
 
 ---Update extmark position from buffer

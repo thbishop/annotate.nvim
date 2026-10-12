@@ -50,7 +50,7 @@ function M.render_virtual_text(annotation)
   end
 
   local cfg = config.get()
-  local hl = annotation.drifted and cfg.highlights.virtual_text_drifted or cfg.highlights.virtual_text
+  local hl = cfg.highlights.virtual_text
   local wrap_at = cfg.virtual_text.wrap_at or 80
 
   local prefix = cfg.virtual_text.prefix or "> "
@@ -96,10 +96,8 @@ function M.render_signs(annotation)
   end
   annotation.sign_ids = {}
 
-  local sign_name = annotation.drifted and "AnnotateSignDrifted" or "AnnotateSign"
-
   for line = annotation.start_line, annotation.end_line do
-    local sign_id = vim.fn.sign_place(0, "annotate", sign_name, annotation.bufnr, { lnum = line, priority = 10 })
+    local sign_id = vim.fn.sign_place(0, "annotate", "AnnotateSign", annotation.bufnr, { lnum = line, priority = 10 })
     table.insert(annotation.sign_ids, sign_id)
   end
 end
@@ -112,7 +110,7 @@ function M.render_line_highlights(annotation)
   end
 
   local cfg = config.get()
-  local line_hl = annotation.drifted and cfg.highlights.line_drifted or cfg.highlights.line
+  local line_hl = cfg.highlights.line
   if not line_hl then
     return
   end
@@ -135,7 +133,6 @@ end
 ---Render a single annotation
 ---@param annotation Annotation
 function M.render_annotation(annotation)
-  annotation.drifted = core.check_drift(annotation)
   M.render_virtual_text(annotation)
   M.render_signs(annotation)
   M.render_line_highlights(annotation)
@@ -143,27 +140,23 @@ end
 
 ---Render all annotations for a buffer.
 ---Called from the TextChanged autocmd; skips sign/highlight re-rendering when
----neither the line range nor the drift status has changed, avoiding redundant
----Neovim API calls on every keystroke.
+---the line range has not changed, avoiding redundant Neovim API calls on every keystroke.
 ---@param bufnr number
 function M.render_buffer_annotations(bufnr)
   for _, annotation in pairs(core.annotations) do
     if annotation.bufnr == bufnr then
       local old_start = annotation.start_line
       local old_end = annotation.end_line
-      local old_drifted = annotation.drifted
 
       core.update_position_from_extmark(annotation)
-      annotation.drifted = core.check_drift(annotation)
 
       local position_changed = annotation.start_line ~= old_start or annotation.end_line ~= old_end
-      local drift_changed = annotation.drifted ~= old_drifted
 
       -- Always update virtual text (extmark updates in-place, cheap)
       M.render_virtual_text(annotation)
 
-      -- Signs and line highlights are only re-placed when necessary
-      if position_changed or drift_changed then
+      -- Signs and line highlights are only re-placed when the range moves
+      if position_changed then
         M.render_signs(annotation)
         M.render_line_highlights(annotation)
       end

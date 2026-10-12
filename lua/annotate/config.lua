@@ -33,11 +33,8 @@
 
 ---@class annotate.Config.Highlights
 ---@field virtual_text string Highlight for virtual text
----@field virtual_text_drifted string Highlight for drifted virtual text
 ---@field sign string Sign highlight
----@field sign_drifted string Drifted sign highlight
 ---@field line string|false Line background highlight (false to disable)
----@field line_drifted string|false Drifted line background highlight
 
 ---@class annotate.Config.Persist
 ---@field enabled boolean Auto-save/load annotations
@@ -73,11 +70,8 @@ local defaults = {
   },
   highlights = {
     virtual_text = "Comment",
-    virtual_text_drifted = "DiagnosticWarn",
     sign = "DiagnosticSignInfo",
-    sign_drifted = "DiagnosticSignWarn",
     line = "AnnotateLine",
-    line_drifted = "AnnotateLineDrifted",
   },
   persist = {
     enabled = false,
@@ -115,8 +109,6 @@ end
 function M.setup_highlights()
   -- Dim yellow background for annotated lines
   vim.api.nvim_set_hl(0, "AnnotateLine", { bg = "#3d3d00", default = true })
-  -- Dim red background for drifted annotated lines
-  vim.api.nvim_set_hl(0, "AnnotateLineDrifted", { bg = "#4d2626", default = true })
 end
 
 ---Setup keymaps (call require('annotate').set_keymaps() to enable)

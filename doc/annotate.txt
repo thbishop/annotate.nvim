@@ -21,7 +21,6 @@ annotate.nvim is a Neovim plugin for adding code review comments with virtual
 text display. Features include:
 
 - Add annotations to selected code ranges
-- Drift detection when annotated code changes
 - Virtual text displayed below annotated hunks
 - Sign column indicators
 - Line background highlighting
@@ -96,11 +95,8 @@ Call `setup()` with a table to override defaults:
       },
       highlights = {
         virtual_text = "Comment",
-        virtual_text_drifted = "DiagnosticWarn",
         sign = "DiagnosticSignInfo",
-        sign_drifted = "DiagnosticSignWarn",
         line = "AnnotateLine",
-        line_drifted = "AnnotateLineDrifted",
       },
       persist = {
         enabled = false,
@@ -137,11 +133,6 @@ Browsing Annotations ~
 - Press `<leader>al` to open Trouble list
 - Press `<leader>as` to open Telescope picker
 - Use `]a` and `[a` to jump between annotations
-
-Drift Detection ~
-
-When annotated code changes, the annotation is marked as "drifted" with a
-warning highlight. This helps identify outdated annotations.
 
 ==============================================================================
 COMMANDS                                                    *annotate-commands*
@@ -210,7 +201,6 @@ Telescope picker keymaps:
     <CR>            Jump to annotation
     d               Delete annotation
     e               Edit annotation
-    D               Filter drifted only
 
 ==============================================================================
 HIGHLIGHTS                                                *annotate-highlights*
@@ -221,14 +211,9 @@ The plugin defines these highlight groups:
     Background color for annotated lines.
     Default: `{ bg = "#3d3d00" }`
 
-*AnnotateLineDrifted*
-    Background color for drifted (changed) annotated lines.
-    Default: `{ bg = "#4d2626" }`
-
 Override in your config:
 >lua
     vim.api.nvim_set_hl(0, "AnnotateLine", { bg = "#2d2d00" })
-    vim.api.nvim_set_hl(0, "AnnotateLineDrifted", { bg = "#3d1616" })
 <
 
 ==============================================================================

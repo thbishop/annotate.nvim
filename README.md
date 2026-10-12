@@ -7,7 +7,6 @@ Code review annotations with virtual text display for Neovim.
 ## Features
 
 - **Add annotations** to selected code ranges with visual text display
-- **Drift detection** - highlights when annotated code has changed
 - **Virtual text** displayed below annotated hunks with word-wrap
 - **Copy to clipboard** and use in your coding agent of choice
 - **Sign column** indicators for annotated lines
@@ -109,11 +108,8 @@ https://github.com/user-attachments/assets/d6a69abc-c822-4e5d-8935-6de3bae867d7
   },
   highlights = {
     virtual_text = "Comment",
-    virtual_text_drifted = "DiagnosticWarn",
     sign = "DiagnosticSignInfo",
-    sign_drifted = "DiagnosticSignWarn",
     line = "AnnotateLine",        -- Line background (false to disable)
-    line_drifted = "AnnotateLineDrifted",
   },
   persist = {
     enabled = false,              -- Auto-save/load annotations
@@ -181,7 +177,6 @@ Enable default keymaps with `require('annotate').set_keymaps()`.
 | `<CR>` | Jump to annotation |
 | `d` | Delete annotation |
 | `e` | Edit annotation |
-| `D` | Filter drifted only |
 
 ## Highlights
 
@@ -190,13 +185,11 @@ The plugin defines these highlight groups (with defaults):
 | Group | Default | Description |
 |-------|---------|-------------|
 | `AnnotateLine` | `#3d3d00` bg | Background for annotated lines |
-| `AnnotateLineDrifted` | `#4d2626` bg | Background for drifted lines |
 
 Override in your config:
 
 ```lua
 vim.api.nvim_set_hl(0, "AnnotateLine", { bg = "#2d2d00" })
-vim.api.nvim_set_hl(0, "AnnotateLineDrifted", { bg = "#3d1616" })
 ```
 
 ## Health Check
